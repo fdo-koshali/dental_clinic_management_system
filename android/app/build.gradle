@@ -1,45 +1,50 @@
 plugins {
-    id "com.android.application"
-    id "kotlin-android"
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
-    id "dev.flutter.flutter-gradle-plugin"
-    id 'com.google.gms.google-services'
+    id "com.android.application"   // Android application plugin
+    id "kotlin-android"            // Kotlin support for Android
+    id "dev.flutter.flutter-gradle-plugin"  // Flutter Gradle plugin (must be applied after Android and Kotlin plugins)
+    id "com.google.gms.google-services"    // Google Services plugin for Firebase
 }
 
 android {
-    namespace = "com.example.dental_clinic_management_system"
-    compileSdk = flutter.compileSdkVersion
+    namespace = "com.example.dental_clinic_management_system"  // Package name
+    compileSdk = 34  // Define the SDK version to compile against
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_1_8  // Java compatibility settings
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = JavaVersion.VERSION_1_8  // Ensure compatibility with Java 8
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.dental_clinic_management_system"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        applicationId = "com.example.dental_clinic_management_system" // Unique application ID
+        minSdk = 23  // Minimum supported Android version (Updated to resolve Firebase issues)
+        targetSdk = 34  // Target Android SDK version
+        versionCode = flutter.versionCode  // App version code (used for updates)
+        versionName = flutter.versionName  // App version name (visible to users)
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            signingConfig = signingConfigs.debug  // Using debug signing for now (update for production release)
         }
     }
 }
 
 flutter {
-    source = "../.."
+    source = "../.."  // Flutter source directory
 }
+
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:32.7.3') // Firebase BOM (manages versions automatically)
+    implementation 'com.google.firebase:firebase-auth' // Firebase Authentication
+    implementation 'com.google.firebase:firebase-firestore' // Firestore database
+    implementation 'com.google.firebase:firebase-analytics' // Firebase Analytics (optional)
+    implementation 'com.google.firebase:firebase-messaging' // Firebase Cloud Messaging (optional, for push notifications)
+}
+
+// Apply the Google Services plugin (required for Firebase to work correctly)
+apply

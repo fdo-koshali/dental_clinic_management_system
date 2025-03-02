@@ -125,6 +125,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
             SizedBox(height: 15),
 
+            TextField(
+              controller: _usernameController,
+              decoration: InputDecoration(
+                labelText: "Mobile number",
+                border: OutlineInputBorder(),
+                errorText: _usernameError, // Display username error
+              ),
+            ),
+            SizedBox(height: 15),
+
             // Password Field
             TextField(
               controller: _passwordController,

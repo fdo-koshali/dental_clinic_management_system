@@ -2,9 +2,12 @@ import 'package:dental_clinic_management_system/internet_connection_error.dart';
 import 'package:flutter/material.dart';
 import 'splash_screen.dart';
 import 'welcome_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -24,6 +27,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-
-
