@@ -1,24 +1,31 @@
 import 'package:flutter/material.dart';
+import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Firebase Firestore
+import 'package:firebase_auth/firebase_auth.dart'; // Firebase Authentication
+import 'login_screen.dart'; // Import the Login screen
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
   @override
-  _SignUpScreenState createState() => _SignUpScreenState();
+  SignUpScreenState createState() => SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+  final TextEditingController _mobileController =
+      TextEditingController(); // Mobile number controller
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   List<String> _passwordErrors = [];
   String? _emailError;
   String? _usernameError;
+  String? _mobileError; // Error for mobile number validation
   String? _generalError; // Stores "Invalid username or password" message
 
   // Email validation
@@ -57,6 +64,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
   }
 
+  // Mobile number validation
+  void _validateMobileNumber(String mobile) {
+    if (!RegExp(r"^0[0-9]{9}$").hasMatch(mobile)) {
+      setState(() {
+        _mobileError = "Mobile number must start with 0 and be 10 digits long";
+      });
+    } else {
+      setState(() {
+        _mobileError = null; // No error if valid
+      });
+    }
+  }
+
   // Function to check if inputs are valid
   void _validateInputs() {
     setState(() {
@@ -65,16 +85,58 @@ class _SignUpScreenState extends State<SignUpScreen> {
           _usernameController.text.isEmpty ? "Username cannot be empty" : null;
     });
 
-    // Check if username is empty or passwords don't match
+    // Check if username is empty, passwords don't match, or mobile number is invalid
     if (_usernameController.text.isEmpty ||
         _passwordErrors.isNotEmpty ||
-        _passwordController.text != _confirmPasswordController.text) {
+        _passwordController.text != _confirmPasswordController.text ||
+        _mobileError != null) {
       setState(() {
         _generalError = "Invalid username or password"; // Display error message
       });
     } else {
-      // Continue with the signup process (e.g., API call)
-      print("User registered successfully!");
+      // If everything is valid, call the save function
+      _saveUserData();
+    }
+  }
+
+  // Function to save user data to Firebase
+  void _saveUserData() async {
+    try {
+      // Create a new user in Firebase Authentication
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+
+      // Save the user data to Firestore
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+        'email': _emailController.text,
+        'username': _usernameController.text,
+        'mobile': _mobileController.text,
+      }).then((value) {
+        // Show success message and navigate to the login screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('You have successfully registered')),
+        );
+
+        // Navigate back to the login screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
+      }).catchError((error) {
+        setState(() {
+          _generalError = "Error: $error";
+        });
+      });
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _generalError = e.message; // Show Firebase auth error
+      });
     }
   }
 
@@ -125,13 +187,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
             SizedBox(height: 15),
 
+            // Mobile Number Field
             TextField(
-              controller: _usernameController,
+              controller: _mobileController, // Use mobile number controller
               decoration: InputDecoration(
                 labelText: "Mobile number",
                 border: OutlineInputBorder(),
-                errorText: _usernameError, // Display username error
+                errorText: _mobileError, // Display mobile number error
               ),
+              keyboardType:
+                  TextInputType.phone, // Numeric input for mobile number
+              onChanged: _validateMobileNumber, // Call the validation function
             ),
             SizedBox(height: 15),
 
@@ -194,7 +260,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
             SizedBox(height: 20),
 
-            // Sign Up Button
+            // Save Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -204,7 +270,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   padding: EdgeInsets.symmetric(vertical: 15),
                 ),
                 child: Text(
-                  "Sign Up",
+                  "Save",
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ),

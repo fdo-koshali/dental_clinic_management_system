@@ -22,6 +22,11 @@ class _SplashScreenState extends State<SplashScreen> {
   void _navigate() async {
     await Future.delayed(Duration(seconds: 3)); // Splash delay
     var connectivityResult = await Connectivity().checkConnectivity();
+    List<ConnectivityResult> validConnections = [
+      ConnectivityResult.wifi,
+      ConnectivityResult.mobile,
+      ConnectivityResult.ethernet
+    ]; // ✅ List of valid internet connections
 
     if (!mounted) return; // Ensure widget is still mounted before navigating
 

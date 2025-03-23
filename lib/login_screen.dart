@@ -1,16 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'signup_screen.dart';
 import 'forgot_password.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();  // ✅ Added controller for email
+  final TextEditingController _passwordController = TextEditingController(); // ✅ Added controller for password
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _isPasswordVisible = false; // Password visibility toggle
+  bool _isLoading = false;
+
+  Future<void> _login() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Navigate to Home Screen after successful login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()), 
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login Failed: ${e.toString()}')),
+      );
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -33,13 +67,16 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+
+                // Email Field
                 TextField(
+                  controller: _emailController,  // ✅ Added controller
                   style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     labelText: "Email",
                     labelStyle: TextStyle(color: Colors.white),
                     filled: true,
-                    fillColor: Colors.white.withOpacity(0.2),
+                    fillColor: Colors.white.withAlpha(128),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
@@ -50,6 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Password Field with Visibility Toggle
                 TextField(
+                  controller: _passwordController, // ✅ Added controller
                   obscureText: !_isPasswordVisible,
                   style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
@@ -100,18 +138,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 SizedBox(height: 20),
 
+                // Login Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       padding: EdgeInsets.symmetric(vertical: 15),
                     ),
-                    child: Text(
-                      "Login",
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ),
+                    child: _isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            "Login",
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
                   ),
                 ),
 
