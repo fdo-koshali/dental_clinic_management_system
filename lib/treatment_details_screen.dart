@@ -2,14 +2,29 @@ import 'package:flutter/material.dart';
 
 class TreatmentDetailsScreen extends StatelessWidget {
   final List<Map<String, String>> treatments = [
-    {"name": "Teeth Cleaning", "description": "A professional cleaning to remove plaque and tartar."},
-    {"name": "Tooth Filling", "description": "A procedure to restore a decayed or damaged tooth."},
-    {"name": "Root Canal", "description": "A treatment to save a severely infected tooth."},
-    {"name": "Tooth Extraction", "description": "A procedure to remove a damaged or impacted tooth."},
-    {"name": "Braces", "description": "Orthodontic treatment to align teeth and improve bite."},
+    {
+      "name": "Teeth Cleaning",
+      "description": "A professional cleaning to remove plaque and tartar."
+    },
+    {
+      "name": "Tooth Filling",
+      "description": "A procedure to restore a decayed or damaged tooth."
+    },
+    {
+      "name": "Root Canal",
+      "description": "A treatment to save a severely infected tooth."
+    },
+    {
+      "name": "Tooth Extraction",
+      "description": "A procedure to remove a damaged or impacted tooth."
+    },
+    {
+      "name": "Braces",
+      "description": "Orthodontic treatment to align teeth and improve bite."
+    },
   ];
 
-  const TreatmentDetailsScreen({super.key});
+  TreatmentDetailsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

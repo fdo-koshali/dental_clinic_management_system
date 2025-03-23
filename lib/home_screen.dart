@@ -32,7 +32,7 @@ class HomeScreen extends StatelessWidget {
     'assets/images/Image slider 05.jpg',
   ];
 
-  const HomeScreen({super.key});
+  HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
