@@ -1,46 +1,18 @@
 name: dental_clinic_management_system
 description: "A new Flutter project."
+
+# Add this environment section
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.0.0"
+
 dependencies:
   flutter:
     sdk: flutter
-  firebase_core: ^3.12.1
-  firebase_auth: ^5.5.1
-  cloud_firestore: ^5.6.5
-  carousel_slider: ^5.0.0
-  cupertino_icons: ^1.0.8
-  connectivity_plus: ^6.1.3
-  
-  # State Management
-  provider: ^6.0.5
-  
-  # UI Components
-  flutter_svg: ^2.0.7
-  google_fonts: ^5.1.0
-  cached_network_image: ^3.2.3
-  shimmer: ^3.0.0
-  
-  # Forms and Validation
-  form_validator: ^2.1.1
-  
-  # Date/Time
-  intl: ^0.18.1
-  
-  # Payment Integration
-  flutter_stripe: ^9.2.2
-  
-  # Notifications
-  flutter_local_notifications: ^15.1.0
-  
-  # PDF Generation for Reports
-  pdf: ^3.10.4
-  printing: ^5.11.0
-  
-  # Image Picker for Profile Photos
-  image_picker: ^1.0.4
-  
-  # Storage for Profile Pictures
-  firebase_storage: ^11.2.6
-  
-  # Email and SMS
-  mailer: ^6.0.1
-  flutter_sms: ^2.3.3
+  # ... rest of your existing dependencies ...
+
+flutter:
+  assets:
+    - assets/images/Splash screen icon.png
+    - assets/images/No_internet.png
+  uses-material-design: true
