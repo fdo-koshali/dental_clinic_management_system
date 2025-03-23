@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:dental_clinic_management_system/login_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
+  const UserProfileScreen({super.key});
+
   @override
   _UserProfileScreenState createState() => _UserProfileScreenState();
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  TextEditingController _nameController = TextEditingController(text: "John Doe");
-  TextEditingController _emailController = TextEditingController(text: "johndoe@example.com");
-  TextEditingController _phoneController = TextEditingController(text: "+1 234 567 890");
+  final TextEditingController _nameController = TextEditingController(text: "John Doe");
+  final TextEditingController _emailController = TextEditingController(text: "johndoe@example.com");
+  final TextEditingController _phoneController = TextEditingController(text: "+1 234 567 890");
 
   @override
   Widget build(BuildContext context) {

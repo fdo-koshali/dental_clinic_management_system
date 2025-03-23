@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppointmentScreen extends StatefulWidget {
+  const AppointmentScreen({super.key});
+
   @override
   _AppointmentScreenState createState() => _AppointmentScreenState();
 }
@@ -192,11 +194,11 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               Center(
                 child: ElevatedButton(
                   onPressed: _submitAppointment,
-                  child:
-                      Text("Book Appointment", style: TextStyle(fontSize: 18)),
                   style: ElevatedButton.styleFrom(
                       padding:
                           EdgeInsets.symmetric(horizontal: 40, vertical: 15)),
+                  child:
+                      Text("Book Appointment", style: TextStyle(fontSize: 18)),
                 ),
               ),
             ],

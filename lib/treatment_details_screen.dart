@@ -9,6 +9,8 @@ class TreatmentDetailsScreen extends StatelessWidget {
     {"name": "Braces", "description": "Orthodontic treatment to align teeth and improve bite."},
   ];
 
+  const TreatmentDetailsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

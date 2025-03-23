@@ -32,6 +32,8 @@ class HomeScreen extends StatelessWidget {
     'assets/images/Image slider 05.jpg',
   ];
 
+  const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,9 +146,9 @@ class HomeScreen extends StatelessWidget {
             MaterialPageRoute(builder: (context) => screen),
           );
         },
-        child: Text(label, style: TextStyle(fontSize: 18)),
         style: ElevatedButton.styleFrom(
             padding: EdgeInsets.symmetric(vertical: 15)),
+        child: Text(label, style: TextStyle(fontSize: 18)),
       ),
     );
   }

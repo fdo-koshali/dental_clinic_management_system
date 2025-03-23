@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Firebase Firestore
 import 'package:firebase_auth/firebase_auth.dart'; // Firebase Authentication
 import 'login_screen.dart'; // Import the Login screen

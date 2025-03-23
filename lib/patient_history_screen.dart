@@ -7,6 +7,8 @@ class PatientHistoryScreen extends StatelessWidget {
     {'date': '2023-12-05', 'treatment': 'Tooth Extraction', 'dentist': 'Dr. Lee'},
   ];
 
+  const PatientHistoryScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
