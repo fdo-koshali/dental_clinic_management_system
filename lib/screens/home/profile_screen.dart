@@ -157,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-Widget _buildAdditionalOptions() {
+  Widget _buildAdditionalOptions() {
     return Column(
       children: [
         ListTile(
@@ -176,7 +176,12 @@ Widget _buildAdditionalOptions() {
           leading: const Icon(Icons.notifications),
           title: const Text('Notification Settings'),
           onTap: () {
-            // TODO: Implement notification settings
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NotificationSettingsScreen(),
+              ),
+            );
           },
         ),
         ListTile(
