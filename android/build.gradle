@@ -1,7 +1,24 @@
-allprojects {
+buildscript {
+    ext {
+        kotlin_version = '1.8.10'
+        gradle_version = '7.3.0'
+    }
     repositories {
         google()
         mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.3.0'
+        classpath 'com.google.gms:google-services:4.3.10'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    tasks.withType(JavaCompile) {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
@@ -15,15 +32,4 @@ subprojects {
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
-}
-
-buildscript {
-    repositories {
-        google()  // This repository is required for Firebase dependencies
-        mavenCentral()
-    }
-    dependencies {
-        // Add the classpath for the Google services plugin
-        classpath 'com.google.gms:google-services:4.3.10'  // <-- Add this line
-    }
 }

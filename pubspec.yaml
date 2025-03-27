@@ -1,18 +1,22 @@
 name: dental_clinic_management_system
 description: "A new Flutter project."
 
-# Add this environment section
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.7.0 <4.0.0'
   flutter: ">=3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  # ... rest of your existing dependencies ...
+  firebase_core: ^2.32.0
+  firebase_auth: ^4.16.0
+  cloud_firestore: ^4.17.5
+  firebase_storage: ^11.5.6
+  provider: ^6.1.1
+  image_picker: ^1.0.5
+  intl: ^0.19.0
+  connectivity_plus: ^5.0.2
 
 flutter:
   assets:
     - assets/images/Splash screen icon.png
-    - assets/images/No_internet.png
-  uses-material-design: true
