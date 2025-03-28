@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../auth/change_password_screen.dart';
+import '../settings/notification_settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -157,6 +158,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // ... existing imports and code remain the same until _buildAdditionalOptions() ...
+
   Widget _buildAdditionalOptions() {
     return Column(
       children: [
@@ -184,20 +187,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
           },
         ),
-        ListTile(
-          leading: const Icon(Icons.privacy_tip),
-          title: const Text('Privacy Settings'),
-          onTap: () {
-            // TODO: Implement privacy settings
-          },
-        ),
       ],
     );
   }
 
   Future<void> _saveProfile() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // TODO: Save profile data to Firestore
+      // TODO: Implement profile update
       setState(() => _isEditing = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profile updated successfully')),

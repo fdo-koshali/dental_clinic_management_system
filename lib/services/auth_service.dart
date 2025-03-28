@@ -1,7 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import '../models/user_model.dart';
+import '../models/user_role.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  void _logError(String message, dynamic error) {
+    debugPrint('$message: $error');
+  }
 
   // Sign in with email and password
   Future<UserCredential?> signIn(String email, String password) async {
@@ -11,20 +20,44 @@ class AuthService {
         password: password,
       );
     } catch (e) {
-      print('Error signing in: $e');
+      _logError('Error signing in', e);
       return null;
     }
   }
 
-  // Sign up with email and password
-  Future<UserCredential?> signUp(String email, String password) async {
+  // Sign up with role
+  Future<UserModel?> signUp({
+    required String email,
+    required String password,
+    required String name,
+    required UserRole role,
+    String? phoneNumber,
+  }) async {
     try {
-      return await _auth.createUserWithEmailAndPassword(
+      final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      if (userCredential.user != null) {
+        final userModel = UserModel(
+          uid: userCredential.user!.uid,
+          email: email,
+          name: name,
+          role: role,
+          phoneNumber: phoneNumber,
+        );
+
+        await _firestore
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set(userModel.toMap());
+
+        return userModel;
+      }
+      return null;
     } catch (e) {
-      print('Error signing up: $e');
+      _logError('Error signing up', e);
       return null;
     }
   }
@@ -39,17 +72,34 @@ class AuthService {
     return _auth.currentUser;
   }
 
+  // Get current user with role
+  Future<UserModel?> getCurrentUserModel() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        return UserModel.fromMap(doc.data()!);
+      }
+    }
+    return null;
+  }
+
+  // Check if user has specific role
+  Future<bool> hasRole(UserRole role) async {
+    final userModel = await getCurrentUserModel();
+    return userModel?.role == role;
+  }
+
   // Password reset
   Future<void> resetPassword(String email) async {
     await _auth.sendPasswordResetEmail(email: email);
   }
 
   // Change password
-  Future<bool> changePassword(String currentPassword, String newPassword) async {
+    Future<bool> changePassword(String currentPassword, String newPassword) async {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        // Reauthenticate user before changing password
         final credential = EmailAuthProvider.credential(
           email: user.email!,
           password: currentPassword,
@@ -60,7 +110,7 @@ class AuthService {
       }
       return false;
     } catch (e) {
-      print('Error changing password: $e');
+      _logError('Error changing password', e);
       return false;
     }
   }

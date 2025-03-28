@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
+import '../dashboard/patient_dashboard.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,12 +12,21 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   final AuthService _authService = AuthService();
+  late final List<Widget> _screens;
 
-  final List<Widget> _screens = [
-    const DashboardScreen(),
-    const AppointmentsScreen(),
-    const ProfileScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      const PatientDashboard(),
+    ];
+  }
+
+  Future<void> _handleLogout() async {
+    await _authService.signOut();
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, '/login');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,12 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
-              onTap: () async {
-                await _authService.signOut();
-                if (mounted) {
-                  Navigator.pushReplacementNamed(context, '/login');
-                }
-              },
+              onTap: _handleLogout,
             ),
           ],
         ),

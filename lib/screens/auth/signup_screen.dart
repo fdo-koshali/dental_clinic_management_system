@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../routes/app_routes.dart';
+import '../../models/user_role.dart';
+import '../../models/user_model.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -20,6 +22,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
+  UserRole _selectedRole = UserRole.patient;
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +105,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
+                DropdownButtonFormField<UserRole>(
+                  value: _selectedRole,
+                  decoration: InputDecoration(
+                    labelText: 'Role',
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  items: UserRole.values.map((role) {
+                    return DropdownMenuItem(
+                      value: role,
+                      child: Text(role.name),
+                    );
+                  }).toList(),
+                  onChanged: (UserRole? value) {
+                    if (value != null) {
+                      setState(() => _selectedRole = value);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: !_isPasswordVisible,
@@ -151,8 +176,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       onPressed: () {
                         setState(() {
-                          _isConfirmPasswordVisible =
-                              !_isConfirmPasswordVisible;
+                          _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
                         });
                       },
                     ),
@@ -196,8 +220,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     const Text('Already have an account?'),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushReplacementNamed(
-                            context, AppRoutes.login);
+                        Navigator.pushReplacementNamed(context, AppRoutes.login);
                       },
                       child: const Text('Login'),
                     ),
@@ -216,26 +239,41 @@ class _SignUpScreenState extends State<SignUpScreen> {
       setState(() => _isLoading = true);
       try {
         final user = await _authService.signUp(
-          _emailController.text,
-          _passwordController.text,
+          email: _emailController.text,
+          password: _passwordController.text,
+          name: _nameController.text,
+          role: _selectedRole,
+          phoneNumber: _mobileController.text,
         );
-        if (user != null) {
-          // Navigate to home screen
-          if (mounted) {
-            Navigator.pushReplacementNamed(context, '/home');
+        
+        if (user != null && mounted) {
+          switch (user.role) {
+            case UserRole.admin:
+              Navigator.pushReplacementNamed(context, '/admin-dashboard');
+              break;
+            case UserRole.dentist:
+              Navigator.pushReplacementNamed(context, '/dentist-dashboard');
+              break;
+            case UserRole.assistant:
+              Navigator.pushReplacementNamed(context, '/assistant-dashboard');
+              break;
+            case UserRole.patient:
+            default:
+              Navigator.pushReplacementNamed(context, '/home');
+              break;
           }
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Failed to create account'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to create account'),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       } finally {
-        setState(() => _isLoading = false);
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
       }
     }
   }
