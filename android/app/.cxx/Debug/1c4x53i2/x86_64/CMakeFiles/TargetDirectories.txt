@@ -1,0 +1,2 @@
+C:/Users/fdoko/Documents/ACADEMIC/3rd Year/Software Development Project/dental_clinic_management_system/android/app/.cxx/Debug/1c4x53i2/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/fdoko/Documents/ACADEMIC/3rd Year/Software Development Project/dental_clinic_management_system/android/app/.cxx/Debug/1c4x53i2/x86_64/CMakeFiles/rebuild_cache.dir
