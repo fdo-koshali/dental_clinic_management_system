@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
-import '../dashboard/patient_dashboard.dart';
+import '../../routes/app_routes.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -10,23 +10,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
-  final AuthService _authService = AuthService();
-  late final List<Widget> _screens;
-
-  @override
-  void initState() {
-    super.initState();
-    _screens = [
-      const PatientDashboard(),
-    ];
-  }
-
-  Future<void> _handleLogout() async {
-    await _authService.signOut();
-    if (!mounted) return;
-    Navigator.pushReplacementNamed(context, '/login');
-  }
+  final _authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +21,13 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: () {
-              // Handle notifications
+              Navigator.pushNamed(context, AppRoutes.notifications);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              Navigator.pushNamed(context, AppRoutes.profile);
             },
           ),
         ],
@@ -56,86 +46,164 @@ class _HomeScreenState extends State<HomeScreen> {
                   const CircleAvatar(
                     radius: 30,
                     backgroundColor: Colors.white,
-                    child: Icon(Icons.person, size: 35),
+                    child: Icon(Icons.person, size: 40),
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Welcome',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                    ),
-                  ),
-                  Text(
                     _authService.getCurrentUser()?.email ?? '',
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 14,
+                      fontSize: 16,
                     ),
                   ),
                 ],
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Home'),
-              onTap: () {
-                Navigator.pop(context);
-                setState(() => _selectedIndex = 0);
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.calendar_today),
               title: const Text('Appointments'),
               onTap: () {
-                Navigator.pop(context);
-                setState(() => _selectedIndex = 1);
+                Navigator.pushNamed(context, AppRoutes.appointments);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Profile'),
+              leading: const Icon(Icons.medical_services),
+              title: const Text('Services'),
               onTap: () {
-                Navigator.pop(context);
-                setState(() => _selectedIndex = 2);
+                Navigator.pushNamed(context, AppRoutes.services);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: const Text('History'),
+              onTap: () {
+                Navigator.pushNamed(context, AppRoutes.history);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pushNamed(context, AppRoutes.settings);
               },
             ),
             const Divider(),
             ListTile(
-              leading: const Icon(Icons.info),
-              title: const Text('About'),
-              onTap: () {
-                // Navigate to about screen
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
-              onTap: _handleLogout,
+              onTap: () async {
+                await _authService.signOut();
+                if (!mounted) return;
+                Navigator.pushReplacementNamed(context, AppRoutes.login);
+              },
             ),
           ],
         ),
       ),
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() => _selectedIndex = index);
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.calendar_today),
+                title: const Text('Book Appointment'),
+                subtitle: const Text('Schedule your next visit'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  Navigator.pushNamed(context, AppRoutes.bookAppointment);
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Upcoming Appointments',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            // TODO: Add upcoming appointments list
+            Card(
+              child: const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text('No upcoming appointments'),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Our Services',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              children: [
+                _buildServiceCard(
+                  icon: Icons.cleaning_services,
+                  title: 'Cleaning',
+                  onTap: () {},
+                ),
+                _buildServiceCard(
+                  icon: Icons.healing,
+                  title: 'Treatment',
+                  onTap: () {},
+                ),
+                _buildServiceCard(
+                  icon: Icons.face,
+                  title: 'Cosmetic',
+                  onTap: () {},
+                ),
+                _buildServiceCard(
+                  icon: Icons.medical_services,
+                  title: 'Surgery',
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, AppRoutes.bookAppointment);
         },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Appointments',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildServiceCard({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 40),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
