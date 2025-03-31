@@ -1,71 +1,77 @@
 import 'package:flutter/material.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import '../../routes/app_routes.dart';
+import 'package:lottie/lottie.dart';
 
 class NetworkErrorScreen extends StatelessWidget {
-  const NetworkErrorScreen({super.key});
+  final VoidCallback onRetry;
 
-  Future<void> _checkConnectivityAndRetry(BuildContext context) async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    
-    if (!context.mounted) return;
-
-    if (connectivityResult != ConnectivityResult.none) {
-      Navigator.pushReplacementNamed(context, AppRoutes.splash);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Still no internet connection. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+  const NetworkErrorScreen({
+    Key? key,
+    required this.onRetry,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
+      backgroundColor: Colors.white,
+      body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.signal_wifi_off,
-                size: 80,
-                color: Theme.of(context).primaryColor,
+              Lottie.asset(
+                'assets/animations/network_error.json',
+                width: 250,
+                height: 250,
+                fit: BoxFit.contain,
               ),
-              const SizedBox(height: 24),
-              const Text(
+              const SizedBox(height: 32),
+              Text(
                 'No Internet Connection',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Please check your internet connection and try again.',
+              Text(
+                'Please check your internet connection and try again',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey,
+                  color: Colors.grey[600],
                 ),
               ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: () => _checkConnectivityAndRetry(context),
+                onPressed: onRetry,
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue[800],
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 32,
                     vertical: 16,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(30),
                   ),
+                  elevation: 3,
                 ),
-                child: const Text('Try Again'),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.refresh, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Try Again',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
