@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:twilio_flutter/twilio_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'appointment_confirmation_screen.dart';
 
 class AppointmentScreen extends StatefulWidget {
   const AppointmentScreen({Key? key}) : super(key: key);
@@ -9,12 +13,20 @@ class AppointmentScreen extends StatefulWidget {
 }
 
 class _AppointmentScreenState extends State<AppointmentScreen> {
+  late TwilioFlutter twilioFlutter;
   final _formKey = GlobalKey<FormState>();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _ageController = TextEditingController();
+  final _ageMonthsController = TextEditingController();
+  final _addressController = TextEditingController();
+
   String? _selectedAppointmentType;
   String? _selectedDentist;
   String? _selectedTreatment;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+  bool _showMonthField = true;
 
   final List<String> _appointmentTypes = ['Consultation', 'Treatment'];
   final List<String> _dentists = ['Dr. Charuka Fernando', 'Dr. John Doe'];
@@ -28,14 +40,70 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     'Posterior nerve filling',
     'Normal tooth removal',
     'Surgical tooth removal',
-    // Add other treatments
   ];
 
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _ageYearsController = TextEditingController();
-  final TextEditingController _ageMonthsController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    twilioFlutter = TwilioFlutter(
+      accountSid: 'your_account_sid',
+      authToken: 'your_auth_token',
+      twilioNumber: 'your_twilio_number',
+    );
+  }
+
+  bool _isValidAppointmentTime(TimeOfDay time) {
+    final hour = time.hour;
+    final minute = time.minute;
+    final timeInMinutes = hour * 60 + minute;
+
+    const morningStart = 9 * 60; // 9 AM
+    const morningEnd = 12 * 60; // 12 PM
+    const afternoonStart = 14 * 60; // 2 PM
+    const afternoonEnd = 16 * 60; // 4 PM
+    const eveningStart = 17 * 60; // 5 PM
+    const eveningEnd = 20 * 60; // 8 PM
+
+    return (timeInMinutes >= morningStart && timeInMinutes < morningEnd) ||
+        (timeInMinutes >= afternoonStart && timeInMinutes < afternoonEnd) ||
+        (timeInMinutes >= eveningStart && timeInMinutes < eveningEnd);
+  }
+
+  bool _isValidDate(DateTime date) {
+    return date.weekday != DateTime.sunday;
+  }
+
+  Future<void> _sendConfirmationSMS(
+    String phoneNumber, {
+    required String appointmentId,
+    required String patientName,
+    required String appointmentType,
+    required DateTime dateTime,
+    required String dentistName,
+  }) async {
+    final message = '''
+Thank you for making an appointment at Dental Clinic!
+
+Appointment Details:
+ID: $appointmentId
+Patient: $patientName
+Type: $appointmentType
+Date: ${DateFormat('yyyy-MM-dd').format(dateTime)}
+Time: ${DateFormat('HH:mm').format(dateTime)}
+Dentist: $dentistName
+
+If you need to reschedule, please contact us.
+''';
+
+    try {
+      await twilioFlutter.sendSMS(
+        toNumber: phoneNumber,
+        messageBody: message,
+      );
+    } catch (e) {
+      print('Error sending SMS: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,29 +195,40 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 children: [
                   Expanded(
                     child: TextFormField(
-                      controller: _ageYearsController,
+                      controller: _ageController,
+                      keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
-                        labelText: 'Age (Years)',
+                        labelText: 'Age',
                         border: OutlineInputBorder(),
                       ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) =>
-                          value?.isEmpty ?? true ? 'Required' : null,
+                      onChanged: (value) {
+                        final age = int.tryParse(value);
+                        setState(() {
+                          _showMonthField = age == null || age <= 6;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter age';
+                        }
+                        return null;
+                      },
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _ageMonthsController,
-                      decoration: const InputDecoration(
-                        labelText: 'Age (Months)',
-                        border: OutlineInputBorder(),
+                  if (_showMonthField)
+                    Expanded(
+                      child: TextFormField(
+                        controller: _ageMonthsController,
+                        decoration: const InputDecoration(
+                          labelText: 'Age (Months)',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) =>
+                            value?.isEmpty ?? true ? 'Required' : null,
                       ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) =>
-                          value?.isEmpty ?? true ? 'Required' : null,
                     ),
-                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -184,9 +263,11 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                           _selectedTreatment = value;
                         });
                       },
-                      validator: (value) => _selectedAppointmentType == 'Treatment' && value == null
-                          ? 'Please select a treatment'
-                          : null,
+                      validator: (value) =>
+                          _selectedAppointmentType == 'Treatment' &&
+                                  value == null
+                              ? 'Please select a treatment'
+                              : null,
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -205,6 +286,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                     initialDate: DateTime.now(),
                     firstDate: DateTime.now(),
                     lastDate: DateTime.now().add(const Duration(days: 90)),
+                    selectableDayPredicate: (DateTime date) {
+                      return _isValidDate(date);
+                    },
                   );
                   if (picked != null) {
                     setState(() {
@@ -227,9 +311,24 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                     initialTime: TimeOfDay.now(),
                   );
                   if (picked != null) {
-                    setState(() {
-                      _selectedTime = picked;
-                    });
+                    if (_isValidAppointmentTime(picked)) {
+                      setState(() {
+                        _selectedTime = picked;
+                      });
+                    } else {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Please select a time during clinic hours:\n'
+                                '9:00 AM - 12:00 PM\n'
+                                '2:00 PM - 4:00 PM\n'
+                                '5:00 PM - 8:00 PM'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
                   }
                 },
               ),
@@ -251,7 +350,52 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _handleSubmit,
+                      onPressed: () {
+                        if (_formKey.currentState?.validate() ?? false) {
+                          if (_selectedDate == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Please select a date')),
+                            );
+                            return;
+                          }
+                          if (_selectedTime == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Please select a time')),
+                            );
+                            return;
+                          }
+
+                          final appointmentDateTime = DateTime(
+                            _selectedDate!.year,
+                            _selectedDate!.month,
+                            _selectedDate!.day,
+                            _selectedTime!.hour,
+                            _selectedTime!.minute,
+                          );
+
+                          final appointmentId =
+                              'APT${DateTime.now().millisecondsSinceEpoch}';
+                          final patientName =
+                              '${_firstNameController.text} ${_lastNameController.text}';
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  AppointmentConfirmationScreen(
+                                appointmentId: appointmentId,
+                                patientName: patientName,
+                                appointmentType: _selectedAppointmentType!,
+                                treatmentType: _selectedTreatment,
+                                dateTime: appointmentDateTime,
+                                dentistName: _selectedDentist!,
+                              ),
+                            ),
+                          );
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
@@ -267,33 +411,11 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     );
   }
 
-  void _handleSubmit() {
-    if (_formKey.currentState?.validate() ?? false) {
-      if (_selectedDate == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a date')),
-        );
-        return;
-      }
-      if (_selectedTime == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a time')),
-        );
-        return;
-      }
-      // TODO: Implement appointment creation logic
-      // Generate appointment ID
-      // Save to database
-      // Send confirmation
-      // Navigate to confirmation screen
-    }
-  }
-
   @override
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
-    _ageYearsController.dispose();
+    _ageController.dispose();
     _ageMonthsController.dispose();
     _addressController.dispose();
     super.dispose();

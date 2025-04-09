@@ -1,6 +1,12 @@
+import 'package:dental_clinic_management_system/screens/treatments/treatment_detail_screen.dart';
+import 'package:dental_clinic_management_system/widgets/home/sidebar_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/services/auth_service.dart';
 import '../../routes/app_routes.dart';
+import 'image_slider.dart';
+import '../appointments/appointment_screen.dart';
+import '../special_notes/special_notes_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,6 +19,69 @@ class _HomeScreenState extends State<HomeScreen> {
   final _authService = AuthService();
 
   @override
+  void initState() {
+    super.initState();
+    _checkUserSession();
+  }
+
+  void _checkUserSession() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      Navigator.pushReplacementNamed(context, AppRoutes.login);
+    }
+  }
+
+  void _showPatientIdDialog(BuildContext context, bool isAppointmentHistory) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String patientId = '';
+        return AlertDialog(
+          title: Text(isAppointmentHistory
+              ? 'Enter Patient ID for Appointments'
+              : 'Enter Patient ID'),
+          content: TextField(
+            decoration: const InputDecoration(
+              labelText: 'Patient ID',
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (value) {
+              patientId = value;
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                if (isAppointmentHistory) {
+                  Navigator.pushNamed(
+                    context,
+                    AppRoutes.appointmentHistory,
+                    arguments: patientId,
+                  );
+                } else {
+                  Navigator.pushNamed(
+                    context,
+                    AppRoutes.patientHistory,
+                    arguments: patientId,
+                  );
+                }
+              },
+              child: Text(isAppointmentHistory
+                  ? 'View Appointment History'
+                  : 'View Patient History'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -21,189 +90,131 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.notifications);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.profile);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SpecialNotesScreen(),
+                ),
+              );
             },
           ),
         ],
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-              ),
+      drawer: SidebarMenu(),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const CircleAvatar(
-                    radius: 30,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.person, size: 40),
+                  SizedBox(
+                    height: 430,
+                    child: const ImageSlider(),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    _authService.getCurrentUser()?.email ?? '',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        Card(
+                          child: ListTile(
+                            leading: const Icon(Icons.calendar_today),
+                            title: const Text('Book Appointment'),
+                            subtitle: const Text('Schedule your next visit'),
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AppointmentScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Card(
+                          child: ListTile(
+                            leading: const Icon(Icons.medical_services),
+                            title: const Text('Our Services'),
+                            subtitle: const Text('View available treatments'),
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const TreatmentDetailsScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.calendar_today),
-              title: const Text('Appointments'),
-              onTap: () {
-                Navigator.pushNamed(context, AppRoutes.appointments);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.medical_services),
-              title: const Text('Services'),
-              onTap: () {
-                Navigator.pushNamed(context, AppRoutes.services);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.history),
-              title: const Text('History'),
-              onTap: () {
-                Navigator.pushNamed(context, AppRoutes.history);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.pushNamed(context, AppRoutes.settings);
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: () async {
-                await _authService.signOut();
-                if (!mounted) return;
-                Navigator.pushReplacementNamed(context, AppRoutes.login);
-              },
-            ),
-          ],
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.calendar_today),
-                title: const Text('Book Appointment'),
-                subtitle: const Text('Schedule your next visit'),
-                trailing: const Icon(Icons.arrow_forward_ios),
-                onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.bookAppointment);
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Upcoming Appointments',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            // TODO: Add upcoming appointments list
-            Card(
-              child: const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text('No upcoming appointments'),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Our Services',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              children: [
-                _buildServiceCard(
-                  icon: Icons.cleaning_services,
-                  title: 'Cleaning',
-                  onTap: () {},
-                ),
-                _buildServiceCard(
-                  icon: Icons.healing,
-                  title: 'Treatment',
-                  onTap: () {},
-                ),
-                _buildServiceCard(
-                  icon: Icons.face,
-                  title: 'Cosmetic',
-                  onTap: () {},
-                ),
-                _buildServiceCard(
-                  icon: Icons.medical_services,
-                  title: 'Surgery',
-                  onTap: () {},
+          ),
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, -2),
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, AppRoutes.bookAppointment);
-        },
-        child: const Icon(Icons.add),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildBottomIcon(
+                  icon: Icons.history,
+                  label: 'Patient History',
+                  onTap: () => _showPatientIdDialog(context, false),
+                ),
+                _buildBottomIcon(
+                  icon: Icons.calendar_month,
+                  label: 'Appointment History',
+                  onTap: () => _showPatientIdDialog(context, true),
+                ),
+                _buildBottomIcon(
+                  icon: Icons.person,
+                  label: 'Profile',
+                  onTap: () {
+                    Navigator.pushNamed(context, AppRoutes.profile);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildServiceCard({
+  Widget _buildBottomIcon({
     required IconData icon,
-    required String title,
+    required String label,
     required VoidCallback onTap,
   }) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 24),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ],
       ),
     );
   }

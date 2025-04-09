@@ -1,65 +1,85 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../data/services/auth_service.dart';
-import '../../routes/app_routes.dart';
+import '../auth/signup_screen.dart';
+import '../home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _resetEmailController = TextEditingController();
   final _authService = AuthService();
   bool _isLoading = false;
   bool _obscurePassword = true;
 
   Future<void> _handleLogin() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() => _isLoading = true);
-      try {
-        final user = await _authService.signInWithEmailAndPassword(
-          _emailController.text.trim(),
-          _passwordController.text,
-        );
+    // Directly navigate to HomeScreen without authentication
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
+  }
 
-        if (!mounted) return;
-
-        if (user != null) {
-          // Navigate based on user role
-          switch (user.role) {
-            case UserRole.admin:
-              Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
-              break;
-            case UserRole.dentist:
-              Navigator.pushReplacementNamed(
-                  context, AppRoutes.dentistDashboard);
-              break;
-            case UserRole.assistant:
-              Navigator.pushReplacementNamed(
-                  context, AppRoutes.assistantDashboard);
-              break;
-            case UserRole.patient:
-              Navigator.pushReplacementNamed(context, AppRoutes.home);
-              break;
-          }
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
+  Future<void> _showResetPasswordDialog() async {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Enter your email to receive a password reset link.'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _resetEmailController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
           ),
-        );
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
-      }
-    }
+          TextButton(
+            onPressed: () async {
+              try {
+                await _authService
+                    .resetPassword(_resetEmailController.text.trim());
+                if (!mounted) return;
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Password reset email sent!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Failed to send reset email'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text('Send'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -74,10 +94,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(
-                    'assets/images/logo.png',
-                    height: 120,
-                  ),
                   const SizedBox(height: 48),
                   TextFormField(
                     controller: _emailController,
@@ -148,10 +164,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   TextButton(
+                    onPressed: _showResetPasswordDialog,
+                    child: const Text('Forgot Password?'),
+                  ),
+                  TextButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, AppRoutes.signup);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const SignUpScreen()),
+                      );
                     },
-                    child: const Text('Don\'t have an account? Sign up'),
+                    child: const Text('Create an Account'),
                   ),
                 ],
               ),
@@ -166,6 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _resetEmailController.dispose();
     super.dispose();
   }
 }

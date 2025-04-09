@@ -1,7 +1,12 @@
-import 'package:firebase_core/firebase_core.dart';
+import 'package:dental_clinic_management_system/screens/appointments/appointment_screen.dart';
+import 'package:dental_clinic_management_system/screens/auth/login_screen.dart';
+import 'package:dental_clinic_management_system/screens/home/home_screen.dart';
+import 'package:dental_clinic_management_system/screens/welcome/welcome_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'screens/splash/splash_screen.dart';
+import 'screens/auth/signup_screen.dart';
 import 'firebase_options.dart';
-import 'routes/app_routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,13 +22,20 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Dental Clinic Management',
+      title: 'Dental Clinic',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        useMaterial3: true,
+        scaffoldBackgroundColor: Colors.white,
       ),
-      initialRoute: AppRoutes.splash,
-      routes: AppRoutes.getRoutes(),
+      home: const SplashScreen(),
+      debugShowCheckedModeBanner: false,
+      routes: {
+        '/signup': (context) => const SignUpScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/home': (context) => const HomeScreen(),
+        '/welcome': (context) => const WelcomeScreen(),
+        '/appointments': (context) => const AppointmentScreen(),
+      },
     );
   }
 }

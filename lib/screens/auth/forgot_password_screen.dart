@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
+import '../../data/services/auth_service.dart';
 import '../../routes/app_routes.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -19,10 +19,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() => _isLoading = true);
       try {
-        await _authService.sendPasswordResetEmail(_emailController.text.trim());
-        
+        await _authService.resetPassword(_emailController.text.trim());
+
         if (!mounted) return;
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Password reset email sent. Please check your inbox.'),

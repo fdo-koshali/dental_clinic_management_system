@@ -39,10 +39,11 @@ class AppointmentConfirmationScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     Text(
                       'Appointment Confirmed!',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
                     ),
                     const SizedBox(height: 32),
                     _buildDetailCard(context),

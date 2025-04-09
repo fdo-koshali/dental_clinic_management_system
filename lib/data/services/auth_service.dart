@@ -5,25 +5,27 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  Future<void> signIn(String email, String password) async {
+    try {
+      final userCredential = await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+
+      if (userCredential.user == null) {
+        throw Exception('Login failed');
+      }
+    } catch (e) {
+      throw Exception('Login failed: ${e.toString()}');
+    }
+  }
+
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
   User? getCurrentUser() {
     return _auth.currentUser;
-  }
-
-  Future<bool> signIn(String email, String password) async {
-    try {
-      final result = await _auth.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password,
-      );
-      return result.user != null;
-    } catch (e) {
-      print('Debug login error: $e'); 
-      return false;
-    }
   }
 
   Future<UserCredential> signUp({
@@ -33,27 +35,10 @@ class AuthService {
     required String phoneNumber,
   }) async {
     try {
-      if (email.isEmpty ||
-          password.isEmpty ||
-          name.isEmpty ||
-          phoneNumber.isEmpty) {
-        throw FirebaseAuthException(
-          code: 'invalid-input',
-          message: 'All fields are required',
-        );
-      }
-
       final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password,
       );
-
-      if (userCredential.user == null) {
-        throw FirebaseAuthException(
-          code: 'signup-failed',
-          message: 'Failed to create user account',
-        );
-      }
 
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'uid': userCredential.user!.uid,
@@ -65,22 +50,10 @@ class AuthService {
         'isActive': true,
       });
 
-      final userDoc = await _firestore
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .get();
-
-      if (!userDoc.exists) {
-        throw FirebaseAuthException(
-          code: 'data-store-failed',
-          message: 'Failed to store user data',
-        );
-      }
-
-      print('User created successfully with ID: ${userCredential.user!.uid}');
+      print('User data stored successfully: ${userCredential.user!.uid}');
       return userCredential;
     } catch (e) {
-      print('Signup error: $e');
+      print('Error during signup: $e');
       rethrow;
     }
   }

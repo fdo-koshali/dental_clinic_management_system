@@ -37,18 +37,15 @@ class SidebarMenu extends StatelessWidget {
                   title: 'Settings',
                   onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
                 ),
-                _buildMenuItem(
-                  icon: Icons.info_outline,
-                  title: 'About',
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.about),
-                ),
                 const Divider(),
                 _buildMenuItem(
                   icon: Icons.logout,
                   title: 'Logout',
                   onTap: () async {
                     await _authService.signOut();
-                    Navigator.pushReplacementNamed(context, AppRoutes.login);
+                    if (context.mounted) {
+                      Navigator.pushReplacementNamed(context, AppRoutes.login);
+                    }
                   },
                   color: Colors.red,
                 ),
