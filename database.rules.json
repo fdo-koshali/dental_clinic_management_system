@@ -1,0 +1,36 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null",
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "inventory": {
+      ".read": "auth != null",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('adminRole').val() == 'dentist' || root.child('users').child(auth.uid).child('adminRole').val() == 'supplier')",
+      "$itemId": {
+        ".validate": "newData.hasChildren(['name', 'quantity', 'price'])",
+        "name": { ".validate": "newData.isString()" },
+        "quantity": { ".validate": "newData.isNumber()" },
+        "price": { ".validate": "newData.isNumber()" }
+      }
+    },
+    "appointments": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$appointmentId": {
+        ".validate": "newData.hasChildren(['patientId', 'dentistId', 'date', 'status'])"
+      }
+    },
+    "patients": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$patientId": {
+        ".validate": "newData.hasChildren(['name', 'email', 'phone'])"
+      }
+    }
+  }
+}
